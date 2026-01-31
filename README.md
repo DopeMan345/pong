@@ -2,4 +2,4 @@ pong game
 
 download
 
-[Download file](main/pong.html)
+[Download file](pong.html)
