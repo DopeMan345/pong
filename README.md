@@ -1,5 +1,2 @@
 pong game
-
-download
-
-[Download file](pong.html)
+[Download](pong.html)
