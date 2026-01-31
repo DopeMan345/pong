@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pong (Single Player)</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="game" width="800" height="500"></canvas>
+
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  // Sizes
+  const paddleWidth = 10;
+  const paddleHeight = 100;
+  const ballSize = 10;
+
+  // Player paddle
+  const leftPaddle = {
+    x: 20,
+    y: canvas.height / 2 - paddleHeight / 2,
+    speed: 6
+  };
+
+  // AI paddle
+  const rightPaddle = {
+    x: canvas.width - 30,
+    y: canvas.height / 2 - paddleHeight / 2,
+    speed: 4 // increase for harder AI
+  };
+
+  // Ball
+  const ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    vx: 5,
+    vy: 5
+  };
+
+  // Score
+  let leftScore = 0;
+  let rightScore = 0;
+
+  // Input
+  const keys = {};
+  document.addEventListener("keydown", e => keys[e.key] = true);
+  document.addEventListener("keyup", e => keys[e.key] = false);
+
+  function movePlayer() {
+    if (keys["w"] && leftPaddle.y > 0) {
+      leftPaddle.y -= leftPaddle.speed;
+    }
+    if (keys["s"] && leftPaddle.y + paddleHeight < canvas.height) {
+      leftPaddle.y += leftPaddle.speed;
+    }
+  }
+
+  function moveAI() {
+    const paddleCenter = rightPaddle.y + paddleHeight / 2;
+
+    if (paddleCenter < ball.y - 10) {
+      rightPaddle.y += rightPaddle.speed;
+    } else if (paddleCenter > ball.y + 10) {
+      rightPaddle.y -= rightPaddle.speed;
+    }
+  }
+
+  function moveBall() {
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Wall collision
+    if (ball.y <= 0 || ball.y + ballSize >= canvas.height) {
+      ball.vy *= -1;
+    }
+
+    // Player paddle collision
+    if (
+      ball.x <= leftPaddle.x + paddleWidth &&
+      ball.y + ballSize >= leftPaddle.y &&
+      ball.y <= leftPaddle.y + paddleHeight
+    ) {
+      ball.vx *= -1;
+    }
+
+    // AI paddle collision
+    if (
+      ball.x + ballSize >= rightPaddle.x &&
+      ball.y + ballSize >= rightPaddle.y &&
+      ball.y <= rightPaddle.y + paddleHeight
+    ) {
+      ball.vx *= -1;
+    }
+
+    // Scoring
+    if (ball.x < 0) {
+      rightScore++;
+      resetBall();
+    }
+
+    if (ball.x > canvas.width) {
+      leftScore++;
+      resetBall();
+    }
+  }
+
+  function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.vx *= -1;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Center line
+    ctx.strokeStyle = "white";
+    ctx.setLineDash([10, 10]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Paddles & ball
+    ctx.fillStyle = "white";
+    ctx.fillRect(leftPaddle.x, leftPaddle.y, paddleWidth, paddleHeight);
+    ctx.fillRect(rightPaddle.x, rightPaddle.y, paddleWidth, paddleHeight);
+    ctx.fillRect(ball.x, ball.y, ballSize, ballSize);
+
+    // Score
+    ctx.font = "32px Arial";
+    ctx.fillText(leftScore, canvas.width / 4, 40);
+    ctx.fillText(rightScore, canvas.width * 3 / 4, 40);
+  }
+
+  function gameLoop() {
+    movePlayer();
+    moveAI();
+    moveBall();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+</script>
+
+</body>
+</html>
